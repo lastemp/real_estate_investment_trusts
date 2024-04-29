@@ -12,6 +12,20 @@ describe("real_estate_investment_trusts", () => {
   const adminOwner = anchor.web3.Keypair.generate();
   const investorOwner = anchor.web3.Keypair.generate();
   const trustSchemePromoter = anchor.web3.Keypair.generate();
+  const depositAccount = anchor.web3.Keypair.generate();
+
+  // pdaAuth
+  let [pdaAuth, adminPdaBump] = anchor.web3.PublicKey.findProgramAddressSync(
+    [
+      anchor.utils.bytes.utf8.encode("auth"),
+      depositAccount.publicKey.toBuffer(),
+    ],
+    program.programId
+  );
+  let [solVault, adminSolBump] = anchor.web3.PublicKey.findProgramAddressSync(
+    [anchor.utils.bytes.utf8.encode("sol-vault"), pdaAuth.toBuffer()],
+    program.programId
+  );
 
   let [investmentTrustsConfigs] = anchor.web3.PublicKey.findProgramAddressSync(
     [anchor.utils.bytes.utf8.encode("investment-trusts-configs")],
@@ -83,12 +97,6 @@ describe("real_estate_investment_trusts", () => {
     });
   });
 
-  /* it("Is initialized!", async () => {
-    // Add your test here.
-    const tx = await program.methods.initialize().rpc();
-    console.log("Your transaction signature", tx);
-  }); */
-
   it("Is initialized!", async () => {
     let initParams = {
       isInitialized: true,
@@ -112,9 +120,10 @@ describe("real_estate_investment_trusts", () => {
   });
 
   it("Is register investment trust scheme!", async () => {
-    /* 1 - DevelopmentRealEstateInvestmentTrusts, // (D-REITs)
-       2 - IncomeRealEstateInvestmentTrust,       // (I-REITs) 
-    */
+    // typeOfReit
+    // 1 - DevelopmentRealEstateInvestmentTrusts i.e (D-REITs)
+    // 2 - IncomeRealEstateInvestmentTrust i.e (I-REITs)
+
     let marketIssuer = {
       issuer: "Acorn Holdings Limited",
       name: "Acorn ASA",
@@ -132,16 +141,23 @@ describe("real_estate_investment_trusts", () => {
       .accounts({
         owner: trustSchemePromoter.publicKey,
         realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
+        depositAccount: depositAccount.publicKey,
+        pdaAuth: pdaAuth,
+        solVault: solVault,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([trustSchemePromoter])
+      .signers([trustSchemePromoter, depositAccount])
       .rpc();
     console.log("Your transaction signature", tx);
 
     let result = await program.account.realEstateInvestmentTrustScheme.fetch(
       realEstateInvestmentTrustScheme
     );
+    let result2 = await program.account.depositBase.fetch(
+      depositAccount.publicKey
+    );
     console.log("real estate investment trust scheme: ", result);
+    console.log("deposit account: ", result2);
   });
 
   it("Is register first investor!", async () => {

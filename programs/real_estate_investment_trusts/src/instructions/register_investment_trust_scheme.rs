@@ -1,10 +1,10 @@
-//! RegisterInstitution instruction handler
+//! RegisterRealEstateInvestmentTrustScheme instruction handler
 
 use {
     crate::{
         error::RealEstateInvestmentTrustsError,
         state::{
-            market_issuer::MarketIssuer,
+            deposit_base::DepositBase, market_issuer::MarketIssuer,
             real_estate_investment_trust_scheme::RealEstateInvestmentTrustScheme,
             reits_type::ReitsType,
         },
@@ -25,6 +25,15 @@ pub struct RegisterRealEstateInvestmentTrustScheme<'info> {
         bump
     )]
     pub real_estate_investment_trust_scheme: Account<'info, RealEstateInvestmentTrustScheme>,
+    #[account(init, payer = owner, space = 8 + DepositBase::INIT_SPACE,
+        constraint = !deposit_account.is_initialized @ RealEstateInvestmentTrustsError::AccountAlreadyInitialized
+    )]
+    pub deposit_account: Account<'info, DepositBase>,
+    #[account(seeds = [b"auth", deposit_account.key().as_ref()], bump)]
+    /// CHECK: no need to check this.
+    pub pda_auth: UncheckedAccount<'info>,
+    #[account(mut, seeds = [b"sol-vault", pda_auth.key().as_ref()], bump)]
+    pub sol_vault: SystemAccount<'info>,
     // mut makes it changeble (mutable)
     #[account(mut)]
     pub owner: Signer<'info>,
@@ -66,16 +75,8 @@ pub fn register_investment_trust_scheme(
         return Err(RealEstateInvestmentTrustsError::InvalidNameLength.into());
     }
 
-    /* let is_valid_reit = {
-        match params.issuer.type_of_reit {
-            ReitsType::DevelopmentRealEstateInvestmentTrusts
-            | ReitsType::IncomeRealEstateInvestmentTrust => true,
-            _ => false,
-        }
-    }; */
-
-    /* 1 - DevelopmentRealEstateInvestmentTrusts, // (D-REITs)
-    2 - IncomeRealEstateInvestmentTrust,       // (I-REITs) */
+    // 1 - DevelopmentRealEstateInvestmentTrusts i.e (D-REITs)
+    // 2 - IncomeRealEstateInvestmentTrust i.e (I-REITs)
 
     let is_valid_reit = {
         match params.issuer.type_of_reit {
@@ -101,8 +102,16 @@ pub fn register_investment_trust_scheme(
         return Err(RealEstateInvestmentTrustsError::InvalidCountryLength.into());
     }
 
+    let deposit_account = &mut ctx.accounts.deposit_account;
     let real_estate_investment_trust_scheme = &mut ctx.accounts.real_estate_investment_trust_scheme;
+
+    // deposit account
     // * - means dereferencing
+    deposit_account.owner = *ctx.accounts.owner.key;
+    deposit_account.admin_auth_bump = ctx.bumps.pda_auth;
+    deposit_account.admin_sol_vault_bump = Some(ctx.bumps.sol_vault);
+    deposit_account.is_initialized = true;
+
     real_estate_investment_trust_scheme.owner = *ctx.accounts.owner.key;
     real_estate_investment_trust_scheme.issuer.issuer = params.issuer.issuer.to_string();
     real_estate_investment_trust_scheme.issuer.name = params.issuer.name.to_string();
