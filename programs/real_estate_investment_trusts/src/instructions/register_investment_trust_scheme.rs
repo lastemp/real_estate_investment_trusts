@@ -4,9 +4,10 @@ use {
     crate::{
         error::RealEstateInvestmentTrustsError,
         state::{
-            deposit_base::DepositBase, market_issuer::MarketIssuer,
+            deposit_base::DepositBase,
+            market_issuer::MarketIssuer,
             real_estate_investment_trust_scheme::RealEstateInvestmentTrustScheme,
-            reits_type::ReitsType,
+            //reits_type::ReitsType,
         },
     },
     anchor_lang::prelude::*,

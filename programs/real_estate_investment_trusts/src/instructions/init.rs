@@ -30,7 +30,7 @@ pub struct InitParams {
     pub is_initialized: bool,
 }
 
-pub fn init(ctx: Context<Init>, params: &InitParams) -> Result<()> {
+pub fn init(ctx: Context<Init>, _params: &InitParams) -> Result<()> {
     msg!("Validate inputs");
 
     let investment_trusts_configs = &mut ctx.accounts.investment_trusts_configs;

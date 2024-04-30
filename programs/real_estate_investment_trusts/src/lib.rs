@@ -6,7 +6,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("FT1V2dLgjb2una5Xe2dDGc35PSDXMzjfwmPyxquFvZMW");
+declare_id!("7xckh4Xhzk9DDB4BjQK7PUdJbVGLoA5RFpSdcxAMvhRW");
 
 #[program]
 pub mod real_estate_investment_trusts {
@@ -30,5 +30,12 @@ pub mod real_estate_investment_trusts {
         params: RegisterInvestorParams,
     ) -> Result<()> {
         instructions::register_investor(ctx, &params)
+    }
+
+    pub fn buy_investment_trusts(
+        ctx: Context<BuyInvestmentTrusts>,
+        params: BuyInvestmentTrustsParams,
+    ) -> Result<()> {
+        instructions::buy_investment_trusts(ctx, &params)
     }
 }

@@ -1,11 +1,20 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { RealEstateInvestmentTrusts } from "../target/types/real_estate_investment_trusts";
+import {
+  Account,
+  getAssociatedTokenAddressSync,
+  getOrCreateAssociatedTokenAccount,
+} from "@solana/spl-token";
+//import { AnchorSplToken } from "../target/types/anchor_spl_token";
+import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 describe("real_estate_investment_trusts", () => {
   // Configure the client to use the local cluster.
-  //anchor.setProvider(anchor.AnchorProvider.env());
   let provider = anchor.AnchorProvider.local("http://127.0.0.1:8899");
+  //const provider = anchor.AnchorProvider.env();
+  const wallet = provider.wallet as anchor.Wallet;
 
   const program = anchor.workspace
     .RealEstateInvestmentTrusts as Program<RealEstateInvestmentTrusts>;
@@ -13,6 +22,20 @@ describe("real_estate_investment_trusts", () => {
   const investorOwner = anchor.web3.Keypair.generate();
   const trustSchemePromoter = anchor.web3.Keypair.generate();
   const depositAccount = anchor.web3.Keypair.generate();
+  /* const usdcMint = new anchor.web3.PublicKey(
+    "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
+  ); // USDC devnet */
+  const usdcMint = new anchor.web3.PublicKey(
+    "kF2s8Kcf66dRdWaKyqGyXCBg7UT2yfjGVUPpXYyM4Uv"
+  ); // test token
+  const sender = wallet.payer;
+  const recipient = anchor.web3.Keypair.generate();
+  const associateTokenProgram = new anchor.web3.PublicKey(
+    "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+  );
+
+  let senderATA: Account;
+  let recipientATA: Account;
 
   // pdaAuth
   let [pdaAuth, adminPdaBump] = anchor.web3.PublicKey.findProgramAddressSync(
@@ -48,6 +71,25 @@ describe("real_estate_investment_trusts", () => {
     ],
     program.programId
   );
+
+  // senderATA & recipientATA
+  before(async () => {
+    senderATA = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      sender,
+      usdcMint,
+      sender.publicKey
+    );
+
+    recipientATA = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      sender,
+      usdcMint,
+      recipient.publicKey
+    );
+    console.log("senderATA address: " + senderATA.address.toBase58());
+    console.log("recipientATA address: " + recipientATA.address.toBase58());
+  });
 
   // admin Owner
   before(async () => {
@@ -128,7 +170,7 @@ describe("real_estate_investment_trusts", () => {
       issuer: "Acorn Holdings Limited",
       name: "Acorn ASA",
       typeOfReit: 2, // IncomeRealEstateInvestmentTrust
-      listingDate: "February 2021",
+      listingDate: "April 2024",
     };
 
     let initParams = {
@@ -179,5 +221,35 @@ describe("real_estate_investment_trusts", () => {
 
     let result = await program.account.investor.fetch(investor);
     console.log("investor: ", result);
+  });
+
+  it("Is buy investment trusts!", async () => {
+    /* The set transfer amount value of 10000000 is equal to 10 USDC. 
+    This setting is because USDC uses a 6 decimal place format, 
+    and the amount value should be in the smallest unit. */
+    let initParams = {
+      //amount: new anchor.BN(10000000), // 10 amount of USDC to transfer (in smallest unit)
+      amount: new anchor.BN(10 ** 9 * 10), // 10 amount of token to transfer (in smallest unit i.e 9 decimals)
+    };
+
+    const tx = await program.methods
+      .buyInvestmentTrusts(initParams)
+      .accounts({
+        owner: sender.publicKey,
+        senderTokens: senderATA.address,
+        recipientTokens: recipientATA.address,
+        mintToken: usdcMint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associateTokenProgram: associateTokenProgram,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([sender])
+      .rpc();
+    console.log("Your transaction signature", tx);
+
+    /* let result = await program.account.investmentTrustsConfigs.fetch(
+      investmentTrustsConfigs
+    );
+    console.log("investmentTrustsConfigs: ", result); */
   });
 });

@@ -1,4 +1,4 @@
-use crate::state::reits_type::ReitsType;
+//use crate::state::reits_type::ReitsType;
 use anchor_lang::prelude::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]

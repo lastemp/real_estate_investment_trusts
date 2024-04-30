@@ -11,6 +11,8 @@ pub enum RealEstateInvestmentTrustsError {
     InvalidTypeOfReit,
     #[msg("Invalid listing date length")]
     InvalidListingDateLength,
+    #[msg("Invalid amount.")]
+    InvalidAmount,
 
     //
     #[msg("Invalid country length")]

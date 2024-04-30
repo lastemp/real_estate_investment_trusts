@@ -4,7 +4,7 @@ This is a [Real Estate Investment Trusts](https://www.nse.co.ke/real-estate-inve
 A REIT(Real Estate Investment Trusts) is a regulated collective investment vehicle that enables persons to contribute money’s worth as consideration for the acquisition of rights or interests in a trust that is divided into units with the intention of earning profits or income from real estate as beneficiaries of the trust.
 This Smart Contract provides a marketplace where investors buy and sell real estate investment trusts.
 
-There are two main types of REITs;
+There are two main types of REITs:
 - Development Real Estate Investment Trusts (D-REITs)
 - Income Real Estate Investment Trust (I-REITs)
 
