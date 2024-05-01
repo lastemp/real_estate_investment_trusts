@@ -5,7 +5,7 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-real_estate_investment_trusts = "FT1V2dLgjb2una5Xe2dDGc35PSDXMzjfwmPyxquFvZMW"
+real_estate_investment_trusts = "7xckh4Xhzk9DDB4BjQK7PUdJbVGLoA5RFpSdcxAMvhRW"
 
 [registry]
 url = "https://api.apr.dev"

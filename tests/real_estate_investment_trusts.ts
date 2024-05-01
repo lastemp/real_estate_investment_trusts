@@ -8,7 +8,7 @@ import {
 } from "@solana/spl-token";
 //import { AnchorSplToken } from "../target/types/anchor_spl_token";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+//import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 describe("real_estate_investment_trusts", () => {
   // Configure the client to use the local cluster.
@@ -26,16 +26,17 @@ describe("real_estate_investment_trusts", () => {
     "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
   ); // USDC devnet */
   const usdcMint = new anchor.web3.PublicKey(
-    "BCCjYdfGUjrUB93ssBsiD7j1WjdVoTvZehkxKaUVgBip"
+    "F9LbqkLDEWzwd1Hz8HeQgd56utrvqgPtXmhWX2QN5j5n"
   ); // test token
-  const sender = wallet.payer;
+  const payer = wallet.payer;
   //const recipient = anchor.web3.Keypair.generate();
   const associateTokenProgram = new anchor.web3.PublicKey(
     "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
   );
 
-  let senderATA: Account;
-  let recipientATA: Account;
+  let payerATA: Account;
+  //let recipientATA: Account;
+  let treasuryVaultATA: Account;
 
   // pdaAuth
   let [pdaAuth, adminPdaBump] = anchor.web3.PublicKey.findProgramAddressSync(
@@ -72,24 +73,24 @@ describe("real_estate_investment_trusts", () => {
     program.programId
   );
 
-  // senderATA & recipientATA
+  // senderATA & treasuryVaultATA
   before(async () => {
-    senderATA = await getOrCreateAssociatedTokenAccount(
+    payerATA = await getOrCreateAssociatedTokenAccount(
       provider.connection,
-      sender,
+      payer,
       usdcMint,
-      sender.publicKey
+      payer.publicKey
     );
 
-    recipientATA = await getOrCreateAssociatedTokenAccount(
+    treasuryVaultATA = await getOrCreateAssociatedTokenAccount(
       provider.connection,
-      sender,
+      payer,
       usdcMint,
       solVault, //recipient.publicKey
       true
     );
-    console.log("senderATA address: " + senderATA.address.toBase58());
-    console.log("recipientATA address: " + recipientATA.address.toBase58());
+    console.log("senderATA address: " + payerATA.address.toBase58());
+    console.log("recipientATA address: " + treasuryVaultATA.address.toBase58());
   });
 
   // admin Owner
@@ -241,15 +242,15 @@ describe("real_estate_investment_trusts", () => {
     const tx = await program.methods
       .buyInvestmentTrusts(initParams)
       .accounts({
-        owner: sender.publicKey,
-        senderTokens: senderATA.address,
-        recipientTokens: recipientATA.address,
+        owner: payer.publicKey,
+        senderTokens: payerATA.address,
+        recipientTokens: treasuryVaultATA.address,
         mintToken: usdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
         associateTokenProgram: associateTokenProgram,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([sender])
+      .signers([payer])
       .rpc();
     console.log("Your transaction signature", tx);
 
@@ -257,5 +258,37 @@ describe("real_estate_investment_trusts", () => {
       investmentTrustsConfigs
     );
     console.log("investmentTrustsConfigs: ", result); */
+  });
+
+  it("Is sell investment trusts!", async () => {
+    /* The set transfer amount value of 10000000 is equal to 10 USDC. 
+    This setting is because USDC uses a 6 decimal place format, 
+    and the amount value should be in the smallest unit. */
+    let initParams = {
+      amount: new anchor.BN(10 ** 9 * 3), // 3 amount of token to transfer (in smallest unit i.e 9 decimals)
+    };
+
+    const tx = await program.methods
+      .sellInvestmentTrusts(initParams)
+      .accounts({
+        owner: payer.publicKey,
+        senderTokens: treasuryVaultATA.address,
+        recipientTokens: payerATA.address,
+        mintToken: usdcMint,
+        depositAccount: depositAccount.publicKey,
+        pdaAuth: pdaAuth,
+        solVault: solVault,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associateTokenProgram: associateTokenProgram,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc();
+    console.log("Your transaction signature", tx);
+
+    let result = await program.account.depositBase.fetch(
+      depositAccount.publicKey
+    );
+    console.log("deposit account: ", result);
   });
 });

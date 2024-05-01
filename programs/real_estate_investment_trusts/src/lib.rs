@@ -38,4 +38,11 @@ pub mod real_estate_investment_trusts {
     ) -> Result<()> {
         instructions::buy_investment_trusts(ctx, &params)
     }
+
+    pub fn sell_investment_trusts(
+        ctx: Context<SellInvestmentTrusts>,
+        params: SellInvestmentTrustsParams,
+    ) -> Result<()> {
+        instructions::sell_investment_trusts(ctx, &params)
+    }
 }
