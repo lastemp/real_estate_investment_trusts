@@ -4,10 +4,9 @@ use {
     crate::{
         error::RealEstateInvestmentTrustsError,
         state::{
-            deposit_base::DepositBase,
+            configs::InvestmentTrustsConfigs, deposit_base::DepositBase,
             market_issuer::MarketIssuer,
             real_estate_investment_trust_scheme::RealEstateInvestmentTrustScheme,
-            //reits_type::ReitsType,
         },
     },
     anchor_lang::prelude::*,
@@ -16,6 +15,10 @@ use {
 #[derive(Accounts)]
 #[instruction(params: RegisterRealEstateInvestmentTrustSchemeParams)]
 pub struct RegisterRealEstateInvestmentTrustScheme<'info> {
+    #[account(
+        mut, constraint = investment_trusts_configs.is_initialized @ RealEstateInvestmentTrustsError::AccountNotInitialized
+    )]
+    pub investment_trusts_configs: Account<'info, InvestmentTrustsConfigs>,
     // init means to create account
     // bump to use unique address for account
     #[account(
@@ -105,6 +108,7 @@ pub fn register_investment_trust_scheme(
 
     let deposit_account = &mut ctx.accounts.deposit_account;
     let real_estate_investment_trust_scheme = &mut ctx.accounts.real_estate_investment_trust_scheme;
+    let investment_trusts_configs = &mut ctx.accounts.investment_trusts_configs;
 
     // deposit account
     // * - means dereferencing
@@ -113,6 +117,7 @@ pub fn register_investment_trust_scheme(
     deposit_account.admin_sol_vault_bump = Some(ctx.bumps.sol_vault);
     deposit_account.is_initialized = true;
 
+    // real_estate_investment_trust_scheme
     real_estate_investment_trust_scheme.owner = *ctx.accounts.owner.key;
     real_estate_investment_trust_scheme.issuer.issuer = params.issuer.issuer.to_string();
     real_estate_investment_trust_scheme.issuer.name = params.issuer.name.to_string();
@@ -122,6 +127,16 @@ pub fn register_investment_trust_scheme(
     real_estate_investment_trust_scheme.country = params.country.to_string();
     real_estate_investment_trust_scheme.active = true;
     real_estate_investment_trust_scheme.is_initialized = true;
+
+    let market_issuer = MarketIssuer {
+        issuer: params.issuer.issuer.to_string(),
+        name: params.issuer.name.to_string(),
+        type_of_reit: params.issuer.type_of_reit,
+        listing_date: params.issuer.listing_date.to_string(),
+    };
+
+    // investment_trusts_configs
+    investment_trusts_configs.issuers.push(market_issuer);
 
     Ok(())
 }

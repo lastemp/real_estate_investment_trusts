@@ -26,10 +26,10 @@ describe("real_estate_investment_trusts", () => {
     "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
   ); // USDC devnet */
   const usdcMint = new anchor.web3.PublicKey(
-    "kF2s8Kcf66dRdWaKyqGyXCBg7UT2yfjGVUPpXYyM4Uv"
+    "BCCjYdfGUjrUB93ssBsiD7j1WjdVoTvZehkxKaUVgBip"
   ); // test token
   const sender = wallet.payer;
-  const recipient = anchor.web3.Keypair.generate();
+  //const recipient = anchor.web3.Keypair.generate();
   const associateTokenProgram = new anchor.web3.PublicKey(
     "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
   );
@@ -85,7 +85,8 @@ describe("real_estate_investment_trusts", () => {
       provider.connection,
       sender,
       usdcMint,
-      recipient.publicKey
+      solVault, //recipient.publicKey
+      true
     );
     console.log("senderATA address: " + senderATA.address.toBase58());
     console.log("recipientATA address: " + recipientATA.address.toBase58());
@@ -182,6 +183,7 @@ describe("real_estate_investment_trusts", () => {
       .registerInvestmentTrustScheme(initParams)
       .accounts({
         owner: trustSchemePromoter.publicKey,
+        investmentTrustsConfigs: investmentTrustsConfigs,
         realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
         depositAccount: depositAccount.publicKey,
         pdaAuth: pdaAuth,
@@ -198,8 +200,12 @@ describe("real_estate_investment_trusts", () => {
     let result2 = await program.account.depositBase.fetch(
       depositAccount.publicKey
     );
+    let result3 = await program.account.investmentTrustsConfigs.fetch(
+      investmentTrustsConfigs
+    );
     console.log("real estate investment trust scheme: ", result);
     console.log("deposit account: ", result2);
+    console.log("investment trusts configs: ", result3);
   });
 
   it("Is register first investor!", async () => {
