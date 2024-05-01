@@ -26,7 +26,7 @@ describe("real_estate_investment_trusts", () => {
     "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
   ); // USDC devnet */
   const usdcMint = new anchor.web3.PublicKey(
-    "F9LbqkLDEWzwd1Hz8HeQgd56utrvqgPtXmhWX2QN5j5n"
+    "GwG9FeMQ9bs93scAUWZDeWmGQYf3ARHD7xdd8GUrWRRK"
   ); // test token
   const payer = wallet.payer;
   //const recipient = anchor.web3.Keypair.generate();
@@ -46,10 +46,11 @@ describe("real_estate_investment_trusts", () => {
     ],
     program.programId
   );
-  let [solVault, adminSolBump] = anchor.web3.PublicKey.findProgramAddressSync(
-    [anchor.utils.bytes.utf8.encode("sol-vault"), pdaAuth.toBuffer()],
-    program.programId
-  );
+  let [treasuryVault, adminTreasuryBump] =
+    anchor.web3.PublicKey.findProgramAddressSync(
+      [anchor.utils.bytes.utf8.encode("treasury-vault"), pdaAuth.toBuffer()],
+      program.programId
+    );
 
   let [investmentTrustsConfigs] = anchor.web3.PublicKey.findProgramAddressSync(
     [anchor.utils.bytes.utf8.encode("investment-trusts-configs")],
@@ -86,7 +87,7 @@ describe("real_estate_investment_trusts", () => {
       provider.connection,
       payer,
       usdcMint,
-      solVault, //recipient.publicKey
+      treasuryVault,
       true
     );
     console.log("senderATA address: " + payerATA.address.toBase58());
@@ -188,7 +189,7 @@ describe("real_estate_investment_trusts", () => {
         realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
         depositAccount: depositAccount.publicKey,
         pdaAuth: pdaAuth,
-        solVault: solVault,
+        treasuryVault: treasuryVault,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
       .signers([trustSchemePromoter, depositAccount])
@@ -277,7 +278,7 @@ describe("real_estate_investment_trusts", () => {
         mintToken: usdcMint,
         depositAccount: depositAccount.publicKey,
         pdaAuth: pdaAuth,
-        solVault: solVault,
+        treasuryVault: treasuryVault,
         tokenProgram: TOKEN_PROGRAM_ID,
         associateTokenProgram: associateTokenProgram,
         systemProgram: anchor.web3.SystemProgram.programId,

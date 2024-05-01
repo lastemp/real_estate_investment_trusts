@@ -36,8 +36,8 @@ pub struct RegisterRealEstateInvestmentTrustScheme<'info> {
     #[account(seeds = [b"auth", deposit_account.key().as_ref()], bump)]
     /// CHECK: no need to check this.
     pub pda_auth: UncheckedAccount<'info>,
-    #[account(mut, seeds = [b"sol-vault", pda_auth.key().as_ref()], bump)]
-    pub sol_vault: SystemAccount<'info>,
+    #[account(mut, seeds = [b"treasury-vault", pda_auth.key().as_ref()], bump)]
+    pub treasury_vault: SystemAccount<'info>,
     // mut makes it changeble (mutable)
     #[account(mut)]
     pub owner: Signer<'info>,
@@ -114,7 +114,7 @@ pub fn register_investment_trust_scheme(
     // * - means dereferencing
     deposit_account.owner = *ctx.accounts.owner.key;
     deposit_account.admin_auth_bump = ctx.bumps.pda_auth;
-    deposit_account.admin_sol_vault_bump = Some(ctx.bumps.sol_vault);
+    deposit_account.admin_treasury_vault_bump = Some(ctx.bumps.treasury_vault);
     deposit_account.is_initialized = true;
 
     // real_estate_investment_trust_scheme

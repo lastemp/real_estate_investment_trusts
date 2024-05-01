@@ -25,8 +25,8 @@ pub struct SellInvestmentTrusts<'info> {
     #[account(seeds = [b"auth", deposit_account.key().as_ref()], bump)]
     /// CHECK: no need to check this.
     pub pda_auth: UncheckedAccount<'info>,
-    #[account(mut, seeds = [b"sol-vault", pda_auth.key().as_ref()], bump)]
-    pub sol_vault: SystemAccount<'info>,
+    #[account(mut, seeds = [b"treasury-vault", pda_auth.key().as_ref()], bump)]
+    pub treasury_vault: SystemAccount<'info>,
     // mut makes it changeble (mutable)
     #[account(mut)]
     pub owner: Signer<'info>,
@@ -49,13 +49,12 @@ pub fn sell_investment_trusts(
         return Err(RealEstateInvestmentTrustsError::InvalidAmount.into());
     }
 
-    //let sender = &ctx.accounts.owner;
     let sender_tokens = &ctx.accounts.sender_tokens;
     let recipient_tokens = &ctx.accounts.recipient_tokens;
     let mint_token = &ctx.accounts.mint_token;
     let deposit_account = &ctx.accounts.deposit_account;
     let pda_auth = &mut ctx.accounts.pda_auth;
-    let sol_vault = &mut ctx.accounts.sol_vault;
+    let treasury_vault = &mut ctx.accounts.treasury_vault;
     let token_program = &ctx.accounts.token_program;
     let _amount = params.amount;
     let _decimals: u8 = 9;
@@ -65,13 +64,13 @@ pub fn sell_investment_trusts(
         from: sender_tokens.to_account_info(),
         mint: mint_token.to_account_info(),
         to: recipient_tokens.to_account_info(),
-        authority: sol_vault.to_account_info(),
+        authority: treasury_vault.to_account_info(),
     };
 
     let seeds = &[
-        b"sol-vault",
+        b"treasury-vault",
         pda_auth.to_account_info().key.as_ref(),
-        &[deposit_account.admin_sol_vault_bump.unwrap()],
+        &[deposit_account.admin_treasury_vault_bump.unwrap()],
     ];
 
     let signer = &[&seeds[..]];
