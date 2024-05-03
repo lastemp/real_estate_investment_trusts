@@ -12,8 +12,10 @@ Below are some features contained in the program:
 
 - Register investment trust scheme
 - Register investor
-- Buy investment trusts
-- Sell investment trusts
+- Buy investment trusts using USDC token
+- Sell investment trusts and get USDC token
+- Create USDC token (*for test purposes)
+- Transfer USDC token
 
 ## Getting started
 
