@@ -25,6 +25,7 @@ pub struct RegisterRealEstateInvestmentTrustScheme<'info> {
         init,
         payer = owner,
         space = 8 + RealEstateInvestmentTrustScheme::INIT_SPACE,
+        constraint = !real_estate_investment_trust_scheme.is_initialized @ RealEstateInvestmentTrustsError::AccountAlreadyInitialized,
         seeds = [b"investment-trust-scheme", owner.key().as_ref()],
         bump
     )]

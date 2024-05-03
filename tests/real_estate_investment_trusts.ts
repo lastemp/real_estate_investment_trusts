@@ -26,7 +26,7 @@ describe("real_estate_investment_trusts", () => {
     "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
   ); // USDC devnet */
   const usdcMint = new anchor.web3.PublicKey(
-    "DZcDxy3yVpDUMHbNuzcS1HNDi8FXEkvV6pyVyaucDa2m"
+    "2q4paW1mUcnbSBFoTc2tJUmraARqHBDADA2S3p5E7T5U"
   ); // test token
   //const payer = wallet.payer;
   const payer = wallet.payer;
