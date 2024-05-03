@@ -45,4 +45,12 @@ pub mod real_estate_investment_trusts {
     ) -> Result<()> {
         instructions::sell_investment_trusts(ctx, &params)
     }
+
+    pub fn create_token(ctx: Context<CreateToken>, params: CreateTokenParams) -> Result<()> {
+        instructions::create_token(ctx, &params)
+    }
+
+    pub fn transfer_token(ctx: Context<TransferToken>, params: TransferTokenParams) -> Result<()> {
+        instructions::transfer_token(ctx, &params)
+    }
 }
