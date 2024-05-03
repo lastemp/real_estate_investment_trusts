@@ -111,11 +111,14 @@ pub fn sell_investment_trusts(
         .checked_sub(_amount)
         .ok_or(RealEstateInvestmentTrustsError::InvalidArithmeticOperation)?;
 
-    let base: i32 = 10;
-    let exponent: i32 = real_estate_investment_trust_scheme.decimals as i32;
+    /* let base: i32 = 10;
+    let exponent: i32 = real_estate_investment_trust_scheme.decimals as i32; */
+    let base: u32 = 10;
+    let exponent = real_estate_investment_trust_scheme.decimals as u32;
     // lets get the amount in decimal format
     // 10 ** 9 * 3(base 10, 9 decimals, 3 amount), // 3 amount of token to transfer (in smallest unit i.e 9 decimals)
-    let result = (base as f64).powi(exponent.abs());
+    //let result = (base as f64).powi(exponent.abs());
+    let result = (base).pow(exponent);
     let _amount = (_amount as u64)
         .checked_mul(result as u64)
         .ok_or(RealEstateInvestmentTrustsError::InvalidArithmeticOperation)?;
