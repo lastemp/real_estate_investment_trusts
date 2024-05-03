@@ -25,9 +25,7 @@ describe("real_estate_investment_trusts", () => {
   /* const usdcMint = new anchor.web3.PublicKey(
     "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
   ); // USDC devnet */
-  /* const usdcMint = new anchor.web3.PublicKey(
-    "4ZeRQnaJpmj6UrwrJYM5aHwqixEHerDVXhsEZRvqTkxo"
-  );  */ // test token
+
   //const payer = wallet.payer;
   const payer = wallet.payer;
   //const investorOwner = wallet.payer;
@@ -36,13 +34,13 @@ describe("real_estate_investment_trusts", () => {
     "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
   );
   //
-  const mintToken = anchor.web3.Keypair.generate();
+  const mintToken = anchor.web3.Keypair.generate(); // usdc token created for test purposes
   const tokenAccount = anchor.utils.token.associatedAddress({
     mint: mintToken.publicKey,
-    owner: provider.publicKey,
+    owner: payer.publicKey, //provider.publicKey,
   });
 
-  const ta = anchor.web3.PublicKey.findProgramAddressSync(
+  /* const ta = anchor.web3.PublicKey.findProgramAddressSync(
     [
       provider.publicKey.toBuffer(),
       TOKEN_PROGRAM_ID.toBuffer(),
@@ -51,10 +49,10 @@ describe("real_estate_investment_trusts", () => {
     associateTokenProgram
   )[0];
 
-  let tokenAccountKeyPair = anchor.web3.Keypair.generate();
+  let tokenAccountKeyPair = anchor.web3.Keypair.generate(); */
 
-  let reciever = anchor.web3.Keypair.generate();
-  let recieverTokenAccountKeypair = anchor.web3.Keypair.generate();
+  let investorOwner = anchor.web3.Keypair.generate();
+  let investorOwnerATA = anchor.web3.Keypair.generate();
   //
 
   //let payerATA: Account;
@@ -92,7 +90,7 @@ describe("real_estate_investment_trusts", () => {
   let [investor] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("investor"),
-      reciever.publicKey.toBuffer(), //investorOwner.publicKey.toBuffer(),
+      investorOwner.publicKey.toBuffer(),
     ],
     program.programId
   );
@@ -133,10 +131,10 @@ describe("real_estate_investment_trusts", () => {
     });
   });
 
-  // reciever
+  // investor owner
   before(async () => {
     let res = await provider.connection.requestAirdrop(
-      reciever.publicKey,
+      investorOwner.publicKey,
       10 * anchor.web3.LAMPORTS_PER_SOL
     );
 
@@ -263,7 +261,7 @@ describe("real_estate_investment_trusts", () => {
       const tx = await program.methods
         .createToken(initParams)
         .accounts({
-          owner: provider.publicKey,
+          owner: payer.publicKey, //provider.publicKey,
           realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
           mintToken: mintToken.publicKey,
           tokenAccount: tokenAccount,
@@ -281,16 +279,16 @@ describe("real_estate_investment_trusts", () => {
 
   it("Is token transfer", async () => {
     console.log(
-      "reciever token account: ",
-      recieverTokenAccountKeypair.publicKey.toBase58()
+      "investor owner token account: ",
+      investorOwnerATA.publicKey.toBase58()
     );
 
     await createAccount(
       provider.connection,
-      reciever,
+      investorOwner,
       mintToken.publicKey,
-      reciever.publicKey,
-      recieverTokenAccountKeypair
+      investorOwner.publicKey,
+      investorOwnerATA
     );
 
     try {
@@ -300,11 +298,11 @@ describe("real_estate_investment_trusts", () => {
       const tx = await program.methods
         .transferToken(initParams)
         .accounts({
-          owner: provider.publicKey,
+          owner: payer.publicKey, //provider.publicKey,
           realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
           mintToken: mintToken.publicKey,
           fromAccount: tokenAccount,
-          toAccount: recieverTokenAccountKeypair.publicKey,
+          toAccount: investorOwnerATA.publicKey,
           tokenProgram: TOKEN_PROGRAM_ID,
           associateTokenProgram: associateTokenProgram,
           systemProgram: anchor.web3.SystemProgram.programId,
@@ -327,11 +325,11 @@ describe("real_estate_investment_trusts", () => {
     const tx = await program.methods
       .registerInvestor(initParams)
       .accounts({
-        owner: reciever.publicKey, //investorOwner.publicKey,
+        owner: investorOwner.publicKey, //investorOwner.publicKey,
         investor: investor,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([reciever]) //investorOwner
+      .signers([investorOwner])
       .rpc();
     console.log("Your transaction signature", tx);
 
@@ -348,7 +346,9 @@ describe("real_estate_investment_trusts", () => {
       true
     );
     //console.log("senderATA address: " + payerATA.address.toBase58());
-    console.log("recipientATA address: " + treasuryVaultATA.address.toBase58());
+    console.log(
+      "treasuryVaultATA address: " + treasuryVaultATA.address.toBase58()
+    );
 
     /* The set transfer amount value of 10000000 is equal to 10 USDC. 
     This setting is because USDC uses a 6 decimal place format, 
@@ -362,17 +362,17 @@ describe("real_estate_investment_trusts", () => {
     const tx = await program.methods
       .buyInvestmentTrusts(initParams)
       .accounts({
-        owner: reciever.publicKey, //payer.publicKey
+        owner: investorOwner.publicKey, //payer.publicKey
         realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
         investor: investor,
-        senderTokens: recieverTokenAccountKeypair.publicKey, //payerATA.address,
+        senderTokens: investorOwnerATA.publicKey, //payerATA.address,
         recipientTokens: treasuryVaultATA.address,
         mintToken: mintToken.publicKey, //usdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
         associateTokenProgram: associateTokenProgram,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([reciever]) //payer
+      .signers([investorOwner]) //payer
       .rpc();
     console.log("Your transaction signature", tx);
 
@@ -397,11 +397,11 @@ describe("real_estate_investment_trusts", () => {
     const tx = await program.methods
       .sellInvestmentTrusts(initParams)
       .accounts({
-        owner: reciever.publicKey, //payer.publicKey,
+        owner: investorOwner.publicKey, //payer.publicKey,
         realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
         investor: investor,
         senderTokens: treasuryVaultATA.address,
-        recipientTokens: recieverTokenAccountKeypair.publicKey, //payerATA.address,
+        recipientTokens: investorOwnerATA.publicKey, //payerATA.address,
         mintToken: mintToken.publicKey, //usdcMint
         depositAccount: depositAccount.publicKey,
         pdaAuth: pdaAuth,
@@ -410,7 +410,7 @@ describe("real_estate_investment_trusts", () => {
         associateTokenProgram: associateTokenProgram,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([reciever]) //payer
+      .signers([investorOwner]) //payer
       .rpc();
     console.log("Your transaction signature", tx);
 
