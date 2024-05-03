@@ -46,8 +46,10 @@ pub struct RegisterRealEstateInvestmentTrustScheme<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct RegisterRealEstateInvestmentTrustSchemeParams {
-    issuer: MarketIssuer, // market issuer details
-    country: String,      // home country where trust scheme is implemented
+    issuer: MarketIssuer,                // market issuer details
+    country: String,                     // home country where trust scheme is implemented
+    unit_cost_of_investment_trusts: u32, // unit cost of investment trusts
+    decimals: u8,                        // decimals for the token mint
 }
 
 // issuer length
@@ -106,6 +108,10 @@ pub fn register_investment_trust_scheme(
         return Err(RealEstateInvestmentTrustsError::InvalidCountryLength.into());
     }
 
+    if params.decimals == 0 {
+        return Err(RealEstateInvestmentTrustsError::InvalidNumeric.into());
+    }
+
     let deposit_account = &mut ctx.accounts.deposit_account;
     let real_estate_investment_trust_scheme = &mut ctx.accounts.real_estate_investment_trust_scheme;
     let investment_trusts_configs = &mut ctx.accounts.investment_trusts_configs;
@@ -127,6 +133,9 @@ pub fn register_investment_trust_scheme(
     real_estate_investment_trust_scheme.country = params.country.to_string();
     real_estate_investment_trust_scheme.active = true;
     real_estate_investment_trust_scheme.is_initialized = true;
+    real_estate_investment_trust_scheme.unit_cost_of_investment_trusts =
+        params.unit_cost_of_investment_trusts;
+    real_estate_investment_trust_scheme.decimals = params.decimals;
 
     let market_issuer = MarketIssuer {
         issuer: params.issuer.issuer.to_string(),

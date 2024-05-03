@@ -13,4 +13,6 @@ pub struct RealEstateInvestmentTrustScheme {
     pub is_initialized: bool,       // is trust scheme initiated
     #[max_len(5)]
     pub investors: Vec<Pubkey>, // list of the investors
+    pub unit_cost_of_investment_trusts: u32, // unit cost of investment trusts
+    pub decimals: u8,               // decimals for the token mint
 }

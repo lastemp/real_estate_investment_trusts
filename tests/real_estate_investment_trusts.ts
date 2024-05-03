@@ -19,16 +19,18 @@ describe("real_estate_investment_trusts", () => {
   const program = anchor.workspace
     .RealEstateInvestmentTrusts as Program<RealEstateInvestmentTrusts>;
   const adminOwner = anchor.web3.Keypair.generate();
-  const investorOwner = anchor.web3.Keypair.generate();
+  //const investorOwner = anchor.web3.Keypair.generate();
   const trustSchemePromoter = anchor.web3.Keypair.generate();
   const depositAccount = anchor.web3.Keypair.generate();
   /* const usdcMint = new anchor.web3.PublicKey(
     "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
   ); // USDC devnet */
   const usdcMint = new anchor.web3.PublicKey(
-    "GwG9FeMQ9bs93scAUWZDeWmGQYf3ARHD7xdd8GUrWRRK"
+    "DZcDxy3yVpDUMHbNuzcS1HNDi8FXEkvV6pyVyaucDa2m"
   ); // test token
+  //const payer = wallet.payer;
   const payer = wallet.payer;
+  const investorOwner = wallet.payer;
   //const recipient = anchor.web3.Keypair.generate();
   const associateTokenProgram = new anchor.web3.PublicKey(
     "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
@@ -110,7 +112,7 @@ describe("real_estate_investment_trusts", () => {
     });
   });
 
-  // investor Owner
+  /* // investor Owner
   before(async () => {
     let res = await provider.connection.requestAirdrop(
       investorOwner.publicKey,
@@ -124,7 +126,7 @@ describe("real_estate_investment_trusts", () => {
       lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
       signature: res,
     });
-  });
+  }); */
 
   // trust Scheme Promoter
   before(async () => {
@@ -179,6 +181,8 @@ describe("real_estate_investment_trusts", () => {
     let initParams = {
       issuer: marketIssuer,
       country: "KE",
+      unitCostOfInvestmentTrusts: 1, // unit cost of investment trusts
+      decimals: 9, // token mint in smallest unit i.e 9 decimals
     };
 
     const tx = await program.methods
@@ -237,13 +241,16 @@ describe("real_estate_investment_trusts", () => {
     and the amount value should be in the smallest unit. */
     let initParams = {
       //amount: new anchor.BN(10000000), // 10 amount of USDC to transfer (in smallest unit)
-      amount: new anchor.BN(10 ** 9 * 10), // 10 amount of token to transfer (in smallest unit i.e 9 decimals)
+      //amount: new anchor.BN(10 ** 9 * 10), // 10 amount of token to transfer (in smallest unit i.e 9 decimals)
+      amount: new anchor.BN(10),
     };
 
     const tx = await program.methods
       .buyInvestmentTrusts(initParams)
       .accounts({
         owner: payer.publicKey,
+        realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
+        investor: investor,
         senderTokens: payerATA.address,
         recipientTokens: treasuryVaultATA.address,
         mintToken: usdcMint,
@@ -255,10 +262,13 @@ describe("real_estate_investment_trusts", () => {
       .rpc();
     console.log("Your transaction signature", tx);
 
-    /* let result = await program.account.investmentTrustsConfigs.fetch(
-      investmentTrustsConfigs
+    let result = await program.account.investor.fetch(investor);
+    console.log("investor: ", result);
+
+    let result2 = await program.account.realEstateInvestmentTrustScheme.fetch(
+      realEstateInvestmentTrustScheme
     );
-    console.log("investmentTrustsConfigs: ", result); */
+    console.log("real estate investment trust scheme: ", result2);
   });
 
   it("Is sell investment trusts!", async () => {
@@ -266,13 +276,16 @@ describe("real_estate_investment_trusts", () => {
     This setting is because USDC uses a 6 decimal place format, 
     and the amount value should be in the smallest unit. */
     let initParams = {
-      amount: new anchor.BN(10 ** 9 * 3), // 3 amount of token to transfer (in smallest unit i.e 9 decimals)
+      //amount: new anchor.BN(10 ** 9 * 3), // 3 amount of token to transfer (in smallest unit i.e 9 decimals)
+      amount: new anchor.BN(3),
     };
 
     const tx = await program.methods
       .sellInvestmentTrusts(initParams)
       .accounts({
         owner: payer.publicKey,
+        realEstateInvestmentTrustScheme: realEstateInvestmentTrustScheme,
+        investor: investor,
         senderTokens: treasuryVaultATA.address,
         recipientTokens: payerATA.address,
         mintToken: usdcMint,
@@ -291,5 +304,13 @@ describe("real_estate_investment_trusts", () => {
       depositAccount.publicKey
     );
     console.log("deposit account: ", result);
+
+    let result2 = await program.account.investor.fetch(investor);
+    console.log("investor: ", result2);
+
+    let result3 = await program.account.realEstateInvestmentTrustScheme.fetch(
+      realEstateInvestmentTrustScheme
+    );
+    console.log("real estate investment trust scheme: ", result3);
   });
 });
