@@ -80,11 +80,6 @@ pub fn sell_investment_trusts(
     let decimals: u8 = real_estate_investment_trust_scheme.decimals;
     let _amount = params.amount;
 
-    /* // _amount is in decimal format hence need to convert to actual value
-    let actual_amount = _amount
-        .checked_div(decimals as u64)
-        .ok_or(RealEstateInvestmentTrustsError::InvalidArithmeticOperation)?; */
-
     // investor's available funds should exceed transfer amount
     if available_funds > _amount {
     } else {

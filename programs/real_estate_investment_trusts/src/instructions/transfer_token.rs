@@ -45,10 +45,6 @@ pub fn transfer_token(ctx: Context<TransferToken>, params: &TransferTokenParams)
         return Err(RealEstateInvestmentTrustsError::InvalidAmount.into());
     }
 
-    //let sender = &ctx.accounts.owner;
-    //let sender_tokens = &ctx.accounts.sender_tokens;
-    //let recipient_tokens = &ctx.accounts.recipient_tokens;
-    //let token_program = &ctx.accounts.token_program;
     let real_estate_investment_trust_scheme = &ctx.accounts.real_estate_investment_trust_scheme;
     let decimals = real_estate_investment_trust_scheme.decimals;
     let _amount = params.amount;

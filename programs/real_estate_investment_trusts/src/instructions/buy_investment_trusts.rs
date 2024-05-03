@@ -68,11 +68,6 @@ pub fn buy_investment_trusts(
     let decimals = real_estate_investment_trust_scheme.decimals as u64;
     let _amount = params.amount;
 
-    /* // _amount is in decimal format hence need to convert to actual value
-    let actual_amount = _amount
-        .checked_div(decimals)
-        .ok_or(RealEstateInvestmentTrustsError::InvalidArithmeticOperation)?; */
-
     // Get unit_investment_trusts from the product of unit_cost_of_investment_trusts and _amount
     let unit_investment_trusts = unit_cost_of_investment_trusts
         .checked_mul(_amount)
